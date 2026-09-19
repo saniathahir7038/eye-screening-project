@@ -1,0 +1,36 @@
+# Local Python environments and downloaded runtimes
+shared/environments/
+shared/python/
+shared/tools/
+shared/android-tools/
+.venv/
+venv/
+**/__pycache__/
+*.py[cod]
+
+# Android and IDE-generated files
+**/.gradle/
+**/build/
+**/local.properties
+.idea/
+.vscode/
+*.iml
+*.apk
+
+# Generated test inputs and results
+test-data/**
+!test-data/
+!test-data/**/
+!test-data/**/.gitkeep
+results/**
+!results/
+!results/**/
+!results/**/.gitkeep
+
+# Temporary names used while importing the Microsoft repositories
+**/.git-upstream-backup/
+
+# Operating-system files
+.DS_Store
+Thumbs.db
+desktop.ini

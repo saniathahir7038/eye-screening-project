@@ -1,0 +1,2 @@
+# Dataset setup and audit only; no training framework is needed yet.
+Pillow==11.3.0
