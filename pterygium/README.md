@@ -145,6 +145,38 @@ The selected checkpoint passed all preset validation gates. ROC-AUC was 0.9977, 
 
 Outputs under `artifacts/phase4a/` include the corrected Keras model, SavedModel export, validation predictions, threshold curve, Grad-CAM overlays, comparison plot, review sheets and machine-readable summary. Twenty-eight automated tests pass. A new independent test dataset is required for an unbiased estimate of corrected-model performance.
 
+## Phase 5: Python screening interface
+
+Start the local Streamlit interface with:
+
+```powershell
+& .venv/Scripts/python.exe -m streamlit run app.py
+```
+
+The interface accepts one PNG or JPEG external-eye image up to 15 MB. It checks minimum resolution, aspect ratio, brightness, contrast and sharpness before inference. A failed check displays `Image quality insufficient — retake photograph` and does not run the model.
+
+The conservative quality limits are 224 × 224 minimum resolution, aspect ratio from 0.75 to 2.0, brightness from 45 to 210, contrast of at least 18 and Laplacian sharpness of at least 20 after a 224 × 224 technical-check resize. These checks detect obvious technical failures only. They cannot confirm that an eye is centred, the complete ocular surface is visible or the photograph is clinically suitable.
+
+Accepted images receive the exact Phase 2 preprocessing: RGB conversion, neutral masking of the upper-left 20% × 20% region and resizing to 224 × 224. The interface loads `artifacts/phase4a/corrected_model.keras` only when the Phase 4A summary has status `accepted`, then uses the validation-selected threshold of 0.181007.
+
+The result page displays `No visible pterygium pattern` or `Suspected pterygium — professional eye examination recommended`, the uncalibrated model score, decision threshold, processed model input and Grad-CAM attention map. The interface states that the result is a screening output rather than a diagnosis or severity grade.
+
+Verification covered decoding, image-size limits, quality checks, exact preprocessing, threshold behavior, heatmap validation, model-acceptance safeguards, empty UI state and failed-quality UI flow. A real-model smoke check reproduced saved scores for normal and positive validation images, and the browser check confirmed the page layout and 15 MB upload limit. All 38 automated tests pass.
+
+## Phase 6: TensorFlow Lite and Android integration
+
+Export and verify the mobile models with:
+
+```powershell
+& .venv/Scripts/python.exe export_tflite.py
+```
+
+The exporter creates float32 and float16 TensorFlow Lite candidates and compares their scores with the accepted Keras model on all 61 validation images. It does not reopen the locked test split. The float32 candidate is 8.87 MB and differs by at most `0.00000088`; the float16 candidate is 4.46 MB and differs by at most `0.00415731`. Both preserve 100% of validation threshold decisions. The smaller float16 model is selected and copied into the Android app with SHA-256 `15ada3c60d498648cca005bde6182f7df90375cf30c46ac45d4929c54345511c`.
+
+The standalone app in `android_app/` supports camera capture and gallery selection, EXIF orientation correction, the same technical quality limits used by the Python interface, the Phase 2 top-left neutral mask, 224 x 224 RGB preprocessing, on-device TensorFlow Lite inference and the locked `0.181007` threshold. Images stay on the device. Results use the same screening and referral wording as the Python interface.
+
+The Android unit tests and debug APK build pass with the repository's JDK 11, Android SDK 33 and Gradle 7.0.2 toolchain. The built APK contains the selected model with the expected hash. A physical Android device is still required to verify camera behavior, latency, memory use and smartphone-image performance.
+
 ## Approval stages
 
 1. Dataset setup and audit ? complete.
@@ -152,8 +184,8 @@ Outputs under `artifacts/phase4a/` include the corrected Keras model, SavedModel
 3. MobileNetV2 training and validation-based threshold selection ? complete.
 4. Locked test evaluation and Grad-CAM review ? complete with review findings.
 5. Corrective train/validation iteration for border and corner reliance - complete.
-6. Python upload interface - awaiting approval.
-7. TensorFlow Lite conversion and Android integration.
+6. Python upload interface - complete.
+7. TensorFlow Lite conversion and Android integration - complete; physical-device validation pending.
 
 Public patient identifiers are unavailable, so patient-independent separation cannot be proven. Accepted duplicate and repeated-capture groups remain inside one split. Bounding-box checks validate coordinates, not clinical correctness. SLID uses slit-lamp images; smartphone performance requires separate data and validation. Model outputs are screening results, not confirmed diagnoses.
 

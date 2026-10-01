@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Pterygium Screening</string>
+    <string name="screen_title">Pterygium screening</string>
+    <string name="screen_intro">Capture or select a clear, close-up external-eye photograph. Processing stays on this device.</string>
+    <string name="capture_photo">Capture photo</string>
+    <string name="choose_photo">Choose photo</string>
+    <string name="empty_status">No image selected</string>
+    <string name="selected_image_description">Selected external-eye photograph</string>
+    <string name="research_notice">Research prototype. The result is a screening output, not a diagnosis or severity grade. Smartphone performance needs independent clinical validation.</string>
+</resources>

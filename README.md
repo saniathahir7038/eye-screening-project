@@ -4,7 +4,7 @@ Research workspace for three smartphone-assisted eye-screening modules:
 
 1. **SmartKC** — keratoconus screening from a Placido-ring eye image.
 2. **DEDector** — dry-eye screening and NIBUT estimation from a Placido-ring eye video.
-3. **Pterygium** — a planned custom model for screening external-eye photographs.
+3. **Pterygium** — a MobileNetV2 research model and local screening interface for external-eye photographs.
 
 ## Repository structure
 
@@ -27,7 +27,7 @@ eye-screening-project/
 - The DEDector CLI and trained segmentation model load successfully on CPU.
 - DEDector invalid-video handling was hardened and covered by three passing tests.
 - Complete DEDector validation still requires a genuine mire-pattern eye video.
-- Pterygium dataset selection and model implementation have not started in this repository.
+- The Pterygium SLID audit, preprocessing, model training, locked evaluation, corrective validation iteration, Python interface, TensorFlow Lite export and standalone Android integration are complete. Physical-device and independent smartphone validation remain pending.
 
 ## Upstream projects
 
