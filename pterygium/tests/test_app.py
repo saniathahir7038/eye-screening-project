@@ -15,6 +15,7 @@ class ScreeningAppTests(unittest.TestCase):
         self.assertEqual(app.title[0].value, "Pterygium screening prototype")
         self.assertEqual(len(app.file_uploader), 1)
         self.assertIn("not a diagnosis", app.info[0].value)
+        self.assertTrue(any("Hold the phone level" in block.value for block in app.markdown))
 
     def test_failed_quality_gate_stops_before_model_inference(self):
         stream = BytesIO()

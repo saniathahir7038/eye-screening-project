@@ -153,15 +153,15 @@ Start the local Streamlit interface with:
 & .venv/Scripts/python.exe -m streamlit run app.py
 ```
 
-The interface accepts one PNG or JPEG external-eye image up to 15 MB. It checks minimum resolution, aspect ratio, brightness, contrast and sharpness before inference. A failed check displays `Image quality insufficient — retake photograph` and does not run the model.
+The interface accepts one PNG or JPEG external-eye image up to 15 MB. It may trim a clearly low-detail, skin-coloured lower margin while retaining the full width and top of the image. It displays both the original and framed area when an adjustment is made. It then checks minimum resolution, aspect ratio, brightness, contrast and sharpness on the framed area before inference. A failed check displays `Image quality insufficient — retake photograph` and does not run the model.
 
 The conservative quality limits are 224 × 224 minimum resolution, aspect ratio from 0.75 to 2.0, brightness from 45 to 210, contrast of at least 18 and Laplacian sharpness of at least 20 after a 224 × 224 technical-check resize. These checks detect obvious technical failures only. They cannot confirm that an eye is centred, the complete ocular surface is visible or the photograph is clinically suitable.
 
-Accepted images receive the exact Phase 2 preprocessing: RGB conversion, neutral masking of the upper-left 20% × 20% region and resizing to 224 × 224. The interface loads `artifacts/phase4a/corrected_model.keras` only when the Phase 4A summary has status `accepted`, then uses the validation-selected threshold of 0.181007.
+Accepted images receive the exact Phase 2 preprocessing after any framing adjustment: RGB conversion, neutral masking of the upper-left 20% × 20% region and resizing to 224 × 224. The interface loads `artifacts/phase4a/corrected_model.keras` only when the Phase 4A summary has status `accepted`, then uses the validation-selected threshold of 0.181007. When framing is applied, it also scores the full photo and returns an inconclusive retake message if the two decisions disagree.
 
-The result page displays `No visible pterygium pattern` or `Suspected pterygium — professional eye examination recommended`, the uncalibrated model score, decision threshold, processed model input and Grad-CAM attention map. The interface states that the result is a screening output rather than a diagnosis or severity grade.
+The result page displays `No visible pterygium pattern`, `Suspected pterygium — professional eye examination recommended`, or an inconclusive retake message. It shows the uncalibrated model score, the full-photo score when framing was applied, the decision threshold, processed model input and Grad-CAM attention map. The interface states that the result is a screening output rather than a diagnosis or severity grade.
 
-Verification covered decoding, image-size limits, quality checks, exact preprocessing, threshold behavior, heatmap validation, model-acceptance safeguards, empty UI state and failed-quality UI flow. A real-model smoke check reproduced saved scores for normal and positive validation images, and the browser check confirmed the page layout and 15 MB upload limit. All 38 automated tests pass.
+Verification covered decoding, image-size limits, quality checks, exact preprocessing, threshold behavior, heatmap validation, model-acceptance safeguards, automatic framing, disagreement handling, empty UI state and failed-quality UI flow. A real-model smoke check reproduced saved scores for normal and positive validation images; a Streamlit AppTest also exercised both an unchanged image and one with a synthetic lower margin. All 40 automated tests pass.
 
 ## Phase 6: TensorFlow Lite and Android integration
 
@@ -175,7 +175,15 @@ The exporter creates float32 and float16 TensorFlow Lite candidates and compares
 
 The standalone app in `android_app/` supports camera capture and gallery selection, EXIF orientation correction, the same technical quality limits used by the Python interface, the Phase 2 top-left neutral mask, 224 x 224 RGB preprocessing, on-device TensorFlow Lite inference and the locked `0.181007` threshold. Images stay on the device. Results use the same screening and referral wording as the Python interface.
 
-The Android unit tests and debug APK build pass with the repository's JDK 11, Android SDK 33 and Gradle 7.0.2 toolchain. The built APK contains the selected model with the expected hash. A physical Android device is still required to verify camera behavior, latency, memory use and smartphone-image performance.
+The Android unit tests and debug APK build pass with the repository's JDK 11, Android SDK 33 and Gradle 7.0.2 toolchain. The built APK contains the selected model with the expected hash. An initial physical-device test verified camera launch, sample-image inference, latency and memory use; the updated build still needs a repeat device test and independent smartphone-image validation.
+
+An initial phone test reported a 0.990 suspected-pattern score for a real close-up eye photograph, despite the known normal sample scoring near zero. This is evidence of a smartphone generalization problem, not a calibrated 99% disease probability. Android version 0.2.0 adds conservative lower-margin auto-framing and withholds a decision when full and framed images disagree. The model and threshold are unchanged; the reported photograph is not available in this repository, and smartphone diagnostic accuracy remains unmeasured.
+
+## Current experimental domain-adaptation build (2026-10-02)
+
+The Phase 4A/Phase 6 sections above document the earlier 0.2.x baseline. Current Streamlit and Android 0.3.0-experimental instead use `artifacts/domain_adapt_v1/model.keras` and threshold `0.16848066449165344`. The original accepted model and export remain under `artifacts/phase4a/` and `artifacts/phase6/`. See [domain-adaptation-experiment-2026-10-02.md](domain-adaptation-experiment-2026-10-02.md) for the exploratory results and limitations. This update reduced false positives on a web-image partition but missed one labeled positive. It is not independently validated on smartphone images and is not suitable for diagnostic use.
+
+The Keras model checksum and threshold are pinned in `artifacts/domain_adapt_v1/manifest.json`. `export_tflite.py` now exports this model by default and selected the float32 TFLite asset (SHA-256 `f70b37fb317586803f6a7be3ae642abf94f4e56d2d120b8808c05973fcf60311`). The float16 candidate exceeded the score-difference limit. Keras and TFLite made the same decisions on 42 quality-accepted external web images; this parity check does not measure clinical accuracy. All 41 Python tests and Android unit tests passed in the prior build. The APK installed and cold-launched on the vivo V2250; the user subsequently tested one eye photograph and reported a negative output. Structured image-level device testing and clinical validation remain outstanding.
 
 ## Approval stages
 

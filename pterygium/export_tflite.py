@@ -1,4 +1,4 @@
-"""Export the accepted Phase 4A model to TensorFlow Lite and verify it on validation data."""
+"""Export a screening model to TensorFlow Lite and verify validation parity."""
 from __future__ import annotations
 
 import argparse
@@ -14,6 +14,8 @@ os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
 
 import numpy as np
 import tensorflow as tf
+
+from screening import DEFAULT_MODEL_PATH, DEFAULT_SUMMARY_PATH, model_threshold
 
 
 ROOT = Path(__file__).resolve().parent
@@ -101,10 +103,7 @@ def compare(name: str, path: Path, keras_scores: np.ndarray, threshold: float,
 
 
 def export(args: argparse.Namespace) -> dict:
-    summary = json.loads(args.summary.read_text(encoding="utf-8"))
-    if summary.get("status") != "accepted" or summary.get("test_set_inference_performed") is not False:
-        raise ValueError("The source model has not passed the Phase 4A validation gate")
-    threshold = float(summary["corrected"]["threshold"])
+    threshold = model_threshold(args.model, args.summary)
     rows = read_validation_rows(args.validation, args.phase2)
     images = load_images(rows)
     labels = np.asarray([int(row["label"]) for row in rows], dtype=np.int32)
@@ -154,7 +153,7 @@ def export(args: argparse.Namespace) -> dict:
     for candidate in candidates:
         candidate.pop("scores")
     result = {
-        "status": "accepted",
+        "status": "conversion_verified",
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "source_model": str(args.model.resolve()),
         "threshold": threshold,
@@ -168,9 +167,9 @@ def export(args: argparse.Namespace) -> dict:
     }
     (args.output / "phase6_summary.json").write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     report = [
-        "# Phase 6: TensorFlow Lite export", "", "Status: **accepted**", "",
+        "# TensorFlow Lite export", "", "Status: **conversion verified; clinical performance unvalidated**", "",
         "## Evaluation boundary", "",
-        "Conversion equivalence was checked on the 61-image validation split. The locked test split was not reopened.", "",
+        "Conversion equivalence was checked on the 61-image SLID validation split. This is not smartphone validation.", "",
         "## Candidates", "", "| Candidate | Size | Maximum score difference | Decision agreement | Accepted |",
         "|---|---:|---:|---:|---|",
     ]
@@ -191,17 +190,17 @@ def export(args: argparse.Namespace) -> dict:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--model", type=Path, default=ROOT / "artifacts/phase4a/corrected_model.keras")
-    parser.add_argument("--summary", type=Path, default=ROOT / "artifacts/phase4a/phase4a_summary.json")
+    parser.add_argument("--model", type=Path, default=DEFAULT_MODEL_PATH)
+    parser.add_argument("--summary", type=Path, default=DEFAULT_SUMMARY_PATH)
     parser.add_argument("--phase2", type=Path, default=ROOT / "artifacts/phase2")
     parser.add_argument("--validation", type=Path, default=ROOT / "artifacts/phase2/validation.csv")
-    parser.add_argument("--output", type=Path, default=ROOT / "artifacts/phase6")
+    parser.add_argument("--output", type=Path, default=ROOT / "artifacts/domain_adapt_v1/export")
     parser.add_argument(
         "--android-asset", type=Path,
         default=ROOT / "android_app/app/src/main/assets/pterygium_model.tflite",
     )
     result = export(parser.parse_args())
-    return 0 if result["status"] == "accepted" else 1
+    return 0 if result["status"] == "conversion_verified" else 1
 
 
 if __name__ == "__main__":

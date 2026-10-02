@@ -1,5 +1,9 @@
 data/
-artifacts/
+artifacts/*
+!artifacts/domain_adapt_v1/
+artifacts/domain_adapt_v1/*
+!artifacts/domain_adapt_v1/model.keras
+!artifacts/domain_adapt_v1/manifest.json
 .venv/
 __pycache__/
 .pytest_cache/

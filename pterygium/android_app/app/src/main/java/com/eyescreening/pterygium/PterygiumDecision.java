@@ -1,7 +1,7 @@
 package com.eyescreening.pterygium;
 
 final class PterygiumDecision {
-    static final float THRESHOLD = 0.18100688606500626f;
+    static final float THRESHOLD = 0.16848066449165344f;
 
     private PterygiumDecision() {}
 

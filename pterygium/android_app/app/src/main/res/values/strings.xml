@@ -2,10 +2,12 @@
 <resources>
     <string name="app_name">Pterygium Screening</string>
     <string name="screen_title">Pterygium screening</string>
-    <string name="screen_intro">Capture or select a clear, close-up external-eye photograph. Processing stays on this device.</string>
+    <string name="screen_intro">Take one clear photo of one eye. Processing stays on this device.</string>
+    <string name="photo_guide_title">How to take a test photo</string>
+    <string name="photo_guide_steps">1. Ask someone to use the rear camera if possible. Hold the phone level so the eye looks horizontal, not sideways.\n2. Look straight ahead. Keep the whole iris (coloured circle) and visible white on both sides in the photo; fill most of the frame with the eye.\n3. Use bright, even light. Avoid direct flash, deep shadows and bright reflections over the eye.\n4. Tap the eye on the camera screen to focus and hold still. Do not use beauty filters.\n5. Check the preview before screening. Retake if the eye is sideways, cut off, blurry or mostly covered by glare.</string>
     <string name="capture_photo">Capture photo</string>
     <string name="choose_photo">Choose photo</string>
     <string name="empty_status">No image selected</string>
     <string name="selected_image_description">Selected external-eye photograph</string>
-    <string name="research_notice">Research prototype. The result is a screening output, not a diagnosis or severity grade. Smartphone performance needs independent clinical validation.</string>
+    <string name="research_notice">Experimental model update. Exploratory testing reduced false positives but missed one labeled pterygium case. This result is not a diagnosis or severity grade; smartphone accuracy needs independent validation.</string>
 </resources>

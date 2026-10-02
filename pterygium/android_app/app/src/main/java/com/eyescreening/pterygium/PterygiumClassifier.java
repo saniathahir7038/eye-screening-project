@@ -19,7 +19,7 @@ import java.nio.channels.FileChannel;
 final class PterygiumClassifier implements AutoCloseable {
     static final int INPUT_SIZE = 224;
     static final String MODEL_ASSET = "pterygium_model.tflite";
-    static final String MODEL_SHA256 = "15ada3c60d498648cca005bde6182f7df90375cf30c46ac45d4929c54345511c";
+    static final String MODEL_SHA256 = "f70b37fb317586803f6a7be3ae642abf94f4e56d2d120b8808c05973fcf60311";
     private static final float MASK_FRACTION = 0.20f;
     private final Interpreter interpreter;
 

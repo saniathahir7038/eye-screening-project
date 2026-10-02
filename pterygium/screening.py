@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import asdict, dataclass
+import hashlib
 from io import BytesIO
 import json
 import math
@@ -15,14 +16,18 @@ import cv2
 import numpy as np
 from PIL import Image, ImageOps, UnidentifiedImageError
 
+from framing import FramingResult, auto_frame
 from prepare_dataset import preprocess_image
 
 
 ROOT = Path(__file__).resolve().parent
-DEFAULT_MODEL_PATH = ROOT / "artifacts" / "phase4a" / "corrected_model.keras"
-DEFAULT_SUMMARY_PATH = ROOT / "artifacts" / "phase4a" / "phase4a_summary.json"
+BASELINE_MODEL_PATH = ROOT / "artifacts" / "phase4a" / "corrected_model.keras"
+BASELINE_SUMMARY_PATH = ROOT / "artifacts" / "phase4a" / "phase4a_summary.json"
+DEFAULT_MODEL_PATH = ROOT / "artifacts" / "domain_adapt_v1" / "model.keras"
+DEFAULT_SUMMARY_PATH = ROOT / "artifacts" / "domain_adapt_v1" / "manifest.json"
 NO_VISIBLE_PATTERN = "No visible pterygium pattern"
 SUSPECTED_PTERYGIUM = "Suspected pterygium"
+INCONCLUSIVE = "Unable to screen this photo reliably"
 
 
 class ImageInputError(ValueError):
@@ -65,8 +70,11 @@ class ScreeningRuntime:
 class ScreeningResult:
     label: str
     suspected: bool
+    inconclusive: bool
     model_score: float
+    full_photo_score: float | None
     threshold: float
+    framing: FramingResult
     processed_image: Image.Image
     heatmap_overlay: Image.Image
 
@@ -124,19 +132,31 @@ def assess_image_quality(image: Image.Image, config: QualityConfig | None = None
     )
 
 
+def model_threshold(model_path: Path, summary_path: Path) -> float:
+    model_path, summary_path = Path(model_path), Path(summary_path)
+    if not model_path.is_file():
+        raise FileNotFoundError(f"Screening model not found: {model_path}")
+    if not summary_path.is_file():
+        raise FileNotFoundError(f"Model manifest not found: {summary_path}")
+    summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    if summary.get("status") == "experimental_research_only":
+        digest = hashlib.sha256(model_path.read_bytes()).hexdigest()
+        if digest != summary.get("model_sha256"):
+            raise ValueError("Experimental model does not match its manifest checksum.")
+        threshold = float(summary["threshold"])
+    elif summary.get("status") == "accepted" and summary.get("test_set_inference_performed") is False:
+        threshold = float(summary["corrected"]["threshold"])
+    else:
+        raise ValueError("The model has not passed its required acceptance gate.")
+    if not 0 < threshold < 1:
+        raise ValueError("The model decision threshold is invalid.")
+    return threshold
+
+
 def load_runtime(model_path: Path = DEFAULT_MODEL_PATH,
                  summary_path: Path = DEFAULT_SUMMARY_PATH) -> ScreeningRuntime:
     model_path, summary_path = Path(model_path), Path(summary_path)
-    if not model_path.is_file():
-        raise FileNotFoundError(f"Corrected model not found: {model_path}")
-    if not summary_path.is_file():
-        raise FileNotFoundError(f"Phase 4A summary not found: {summary_path}")
-    summary = json.loads(summary_path.read_text(encoding="utf-8"))
-    if summary.get("status") != "accepted" or summary.get("test_set_inference_performed") is not False:
-        raise ValueError("Phase 4A model has not passed the required validation-only acceptance gate.")
-    threshold = float(summary["corrected"]["threshold"])
-    if not 0 < threshold < 1:
-        raise ValueError("The Phase 4A threshold is invalid.")
+    threshold = model_threshold(model_path, summary_path)
 
     import tensorflow as tf
     from evaluate import build_gradcam_model
@@ -162,19 +182,35 @@ def create_heatmap_overlay(image: Image.Image, heatmap: np.ndarray) -> Image.Ima
     return Image.fromarray(blended)
 
 
-def run_screening(runtime: ScreeningRuntime, image: Image.Image) -> ScreeningResult:
+def run_screening(runtime: ScreeningRuntime, image: Image.Image,
+                  framing: FramingResult | None = None) -> ScreeningResult:
     from evaluate import gradcam
 
-    processed, _ = preprocess_image(ImageOps.exif_transpose(image).convert("RGB"), 224, 0.20)
+    oriented = ImageOps.exif_transpose(image).convert("RGB")
+    framing = framing or auto_frame(oriented)
+    processed, _ = preprocess_image(framing.image, 224, 0.20)
     heatmap, score = gradcam(runtime.gradcam_model, np.asarray(processed, dtype=np.float32))
     if not math.isfinite(score) or not 0 <= score <= 1:
         raise ValueError("The model returned an invalid score.")
+    full_photo_score = None
+    if framing.adjusted:
+        full_processed, _ = preprocess_image(oriented, 224, 0.20)
+        _, full_photo_score = gradcam(runtime.gradcam_model,
+                                      np.asarray(full_processed, dtype=np.float32))
+        if not math.isfinite(full_photo_score) or not 0 <= full_photo_score <= 1:
+            raise ValueError("The full-photo model returned an invalid score.")
+    inconclusive = (full_photo_score is not None
+                    and (full_photo_score >= runtime.threshold) != (score >= runtime.threshold))
     suspected = score >= runtime.threshold
     return ScreeningResult(
-        label=SUSPECTED_PTERYGIUM if suspected else NO_VISIBLE_PATTERN,
+        label=INCONCLUSIVE if inconclusive else
+        SUSPECTED_PTERYGIUM if suspected else NO_VISIBLE_PATTERN,
         suspected=suspected,
+        inconclusive=inconclusive,
         model_score=score,
+        full_photo_score=full_photo_score,
         threshold=runtime.threshold,
+        framing=framing,
         processed_image=processed,
         heatmap_overlay=create_heatmap_overlay(processed, heatmap),
     )
@@ -184,15 +220,19 @@ def screen_file(path: Path, model_path: Path = DEFAULT_MODEL_PATH,
                 summary_path: Path = DEFAULT_SUMMARY_PATH) -> dict:
     path = Path(path)
     image = decode_uploaded_image(path.read_bytes())
-    quality = assess_image_quality(image)
-    output = {"image": str(path), "quality": asdict(quality)}
+    framing = auto_frame(image)
+    quality = assess_image_quality(framing.image)
+    output = {"image": str(path), "quality": asdict(quality),
+              "removed_bottom_fraction": framing.removed_bottom_fraction}
     if not quality.accepted:
         output["result"] = "Image quality insufficient — retake photograph"
         return output
-    result = run_screening(load_runtime(model_path, summary_path), image)
+    result = run_screening(load_runtime(model_path, summary_path), image, framing)
     output["result"] = {
         "label": result.label,
         "model_score": result.model_score,
+        "full_photo_score": result.full_photo_score,
+        "inconclusive": result.inconclusive,
         "threshold": result.threshold,
     }
     return output

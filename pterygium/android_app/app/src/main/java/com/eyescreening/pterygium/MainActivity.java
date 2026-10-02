@@ -122,8 +122,11 @@ public final class MainActivity extends AppCompatActivity {
         scoreText.setText("");
         inferenceExecutor.execute(() -> {
             Bitmap bitmap = null;
+            Bitmap original = null;
             try {
-                bitmap = decodeBitmap(uri);
+                original = decodeBitmap(uri);
+                EyeFraming.Result framing = EyeFraming.frame(original);
+                bitmap = framing.image;
                 Bitmap displayBitmap = bitmap;
                 runOnUiThread(() -> imagePreview.setImageBitmap(displayBitmap));
 
@@ -134,16 +137,22 @@ public final class MainActivity extends AppCompatActivity {
                     runOnUiThread(() -> {
                         setBusy(false, issues);
                         resultText.setText("");
-                        scoreText.setText(formatQuality(quality));
+                        scoreText.setText(formatQuality(quality) + formatFraming(framing));
                     });
                     return;
                 }
                 if (classifier == null) {
                     throw new IOException("The model is not ready");
                 }
+                float originalScore = framing.adjusted() ? classifier.predict(original) : Float.NaN;
                 float score = classifier.predict(bitmap);
                 boolean suspected = PterygiumDecision.isSuspected(score);
-                runOnUiThread(() -> showResult(score, suspected, quality));
+                if (framing.adjusted()
+                        && PterygiumDecision.isSuspected(originalScore) != suspected) {
+                    runOnUiThread(() -> showInconclusive(originalScore, score, quality, framing));
+                } else {
+                    runOnUiThread(() -> showResult(score, suspected, quality, framing));
+                }
             } catch (Exception error) {
                 if (bitmap != null && !bitmap.isRecycled()) {
                     bitmap.recycle();
@@ -152,6 +161,10 @@ public final class MainActivity extends AppCompatActivity {
                     imagePreview.setImageDrawable(null);
                     setBusy(false, "This file could not be screened. Use a readable PNG or JPEG eye photograph.");
                 });
+            } finally {
+                if (original != null && original != bitmap && !original.isRecycled()) {
+                    original.recycle();
+                }
             }
         });
     }
@@ -231,17 +244,37 @@ public final class MainActivity extends AppCompatActivity {
         return oriented;
     }
 
-    private void showResult(float score, boolean suspected, ImageQuality.Result quality) {
-        setBusy(false, "Image quality accepted. Screening completed on this device.");
+    private void showResult(float score, boolean suspected, ImageQuality.Result quality,
+                            EyeFraming.Result framing) {
+        setBusy(false, "Experimental research result. Technical checks passed; eye framing still needs visual review.");
         resultText.setText(PterygiumDecision.label(score));
         resultText.setTextColor(ContextCompat.getColor(
                 this, suspected ? R.color.result_suspected : R.color.result_normal));
         scoreText.setText(String.format(
                 Locale.US,
-                "Model score %.3f  |  Decision threshold %.3f\n%s",
+                "Model score %.3f  |  Decision threshold %.3f\n%s%s",
                 score,
                 PterygiumDecision.THRESHOLD,
-                formatQuality(quality)));
+                formatQuality(quality),
+                formatFraming(framing)));
+    }
+
+    private void showInconclusive(float originalScore, float framedScore,
+                                  ImageQuality.Result quality, EyeFraming.Result framing) {
+        setBusy(false, "Experimental research result changed after automatic framing.");
+        resultText.setText("Unable to screen this photo reliably — retake a closer eye photograph.");
+        resultText.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
+        scoreText.setText(String.format(Locale.US,
+                "Full photo score %.3f  |  Framed photo score %.3f  |  Threshold %.3f\n%s%s",
+                originalScore, framedScore, PterygiumDecision.THRESHOLD,
+                formatQuality(quality), formatFraming(framing)));
+    }
+
+    private static String formatFraming(EyeFraming.Result framing) {
+        return framing.adjusted()
+                ? String.format(Locale.US, "\nAuto-framing removed %.0f%% of the lower margin. Preview shows the framed area.",
+                100 * framing.removedBottomFraction)
+                : "\nFull photo used.";
     }
 
     private static String formatQuality(ImageQuality.Result quality) {

@@ -1,0 +1,13 @@
+{
+  "status": "experimental_research_only",
+  "model_sha256": "e7e806189cda5de485c135fdc3a4149a8b499e67f668bef61aec35955964c18e",
+  "threshold": 0.16848066449165344,
+  "source": "Frozen Phase 4A feature extractor with a re-fitted logistic head",
+  "external_data": "TaeKeun Yoo, Conjunctival melanoma detection using deep learning in smartphone images, Mendeley Data v2, DOI 10.17632/t75wjsw6bw.2 (CC BY-NC 3.0)",
+  "selection": "External and SLID validation sensitivity >= 0.90, then maximize minimum specificity",
+  "external_test_raw_model_counts": {
+    "candidate": {"true_positive": 13, "false_negative": 1, "true_negative": 11, "false_positive": 8},
+    "previous": {"true_positive": 14, "false_negative": 0, "true_negative": 0, "false_positive": 19}
+  },
+  "limitations": "Exploratory web-image experiment, not independent smartphone validation. Most images fail the app resolution gate."
+}
