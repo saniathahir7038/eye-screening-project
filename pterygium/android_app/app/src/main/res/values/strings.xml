@@ -9,5 +9,9 @@
     <string name="choose_photo">Choose photo</string>
     <string name="empty_status">No image selected</string>
     <string name="selected_image_description">Selected external-eye photograph</string>
+    <string name="show_research_heatmap">Show research heatmap</string>
+    <string name="hide_research_heatmap">Hide research heatmap</string>
+    <string name="research_heatmap_description">Grad-CAM influence heatmap over the processed eye photograph</string>
+    <string name="research_heatmap_notice">Warm colours show regions influencing the model score. This is not a lesion boundary or diagnosis.</string>
     <string name="research_notice">Experimental model update. Exploratory testing reduced false positives but missed one labeled pterygium case. This result is not a diagnosis or severity grade; smartphone accuracy needs independent validation.</string>
 </resources>

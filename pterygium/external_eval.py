@@ -52,8 +52,9 @@ def score_batches(model, arrays, batch_size=16):
 
 
 def score_tflite(interpreter, arrays):
+    from export_tflite import score_output_detail
     input_index = interpreter.get_input_details()[0]["index"]
-    output_index = interpreter.get_output_details()[0]["index"]
+    output_index = score_output_detail(interpreter)["index"]
     results = []
     for array in arrays:
         interpreter.set_tensor(input_index, array.astype(np.float32)[None, ...])

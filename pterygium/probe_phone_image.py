@@ -13,6 +13,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageOps
 import tensorflow as tf
 
+from export_tflite import score_output_detail
 from framing import auto_frame
 from screening import DEFAULT_MODEL_PATH, DEFAULT_SUMMARY_PATH, model_threshold
 
@@ -34,7 +35,7 @@ def preprocess(image: Image.Image) -> np.ndarray:
 def score(interpreter: tf.lite.Interpreter, image: Image.Image) -> float:
     interpreter.set_tensor(interpreter.get_input_details()[0]["index"], preprocess(image))
     interpreter.invoke()
-    return float(interpreter.get_tensor(interpreter.get_output_details()[0]["index"])[0, 0])
+    return float(interpreter.get_tensor(score_output_detail(interpreter)["index"])[0, 0])
 
 
 def main() -> None:

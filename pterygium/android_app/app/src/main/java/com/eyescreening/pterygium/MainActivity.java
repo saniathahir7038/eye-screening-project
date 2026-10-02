@@ -32,12 +32,15 @@ public final class MainActivity extends AppCompatActivity {
     private static final String STATE_CAMERA_URI = "pending_camera_uri";
 
     private ImageView imagePreview;
+    private ImageView heatmapPreview;
     private TextView statusText;
     private TextView resultText;
     private TextView scoreText;
     private ProgressBar progressBar;
     private Button captureButton;
     private Button chooseButton;
+    private Button heatmapButton;
+    private Bitmap currentHeatmap;
     private final ExecutorService inferenceExecutor = Executors.newSingleThreadExecutor();
     private PterygiumClassifier classifier;
     private Uri pendingCameraUri;
@@ -67,12 +70,14 @@ public final class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         imagePreview = findViewById(R.id.imagePreview);
+        heatmapPreview = findViewById(R.id.heatmapPreview);
         statusText = findViewById(R.id.statusText);
         resultText = findViewById(R.id.resultText);
         scoreText = findViewById(R.id.scoreText);
         progressBar = findViewById(R.id.progressBar);
         captureButton = findViewById(R.id.captureButton);
         chooseButton = findViewById(R.id.chooseButton);
+        heatmapButton = findViewById(R.id.heatmapButton);
         if (savedInstanceState != null) {
             String cameraUri = savedInstanceState.getString(STATE_CAMERA_URI);
             if (cameraUri != null) {
@@ -82,6 +87,12 @@ public final class MainActivity extends AppCompatActivity {
 
         captureButton.setOnClickListener(view -> capturePhoto());
         chooseButton.setOnClickListener(view -> imagePicker.launch("image/*"));
+        heatmapButton.setOnClickListener(view -> {
+            boolean show = heatmapPreview.getVisibility() != View.VISIBLE;
+            heatmapPreview.setVisibility(show ? View.VISIBLE : View.GONE);
+            findViewById(R.id.heatmapNotice).setVisibility(show ? View.VISIBLE : View.GONE);
+            heatmapButton.setText(show ? R.string.hide_research_heatmap : R.string.show_research_heatmap);
+        });
         initialiseClassifier();
     }
 
@@ -118,6 +129,7 @@ public final class MainActivity extends AppCompatActivity {
 
     private void handleImage(Uri uri) {
         setBusy(true, "Checking image quality…");
+        clearHeatmap();
         resultText.setText("");
         scoreText.setText("");
         inferenceExecutor.execute(() -> {
@@ -145,13 +157,16 @@ public final class MainActivity extends AppCompatActivity {
                     throw new IOException("The model is not ready");
                 }
                 float originalScore = framing.adjusted() ? classifier.predict(original) : Float.NaN;
-                float score = classifier.predict(bitmap);
+                PterygiumClassifier.Explanation explanation = classifier.explain(bitmap);
+                float score = explanation.score;
                 boolean suspected = PterygiumDecision.isSuspected(score);
                 if (framing.adjusted()
                         && PterygiumDecision.isSuspected(originalScore) != suspected) {
+                    explanation.overlay.recycle();
                     runOnUiThread(() -> showInconclusive(originalScore, score, quality, framing));
                 } else {
-                    runOnUiThread(() -> showResult(score, suspected, quality, framing));
+                    runOnUiThread(() -> showResult(score, suspected, quality, framing,
+                            explanation.overlay));
                 }
             } catch (Exception error) {
                 if (bitmap != null && !bitmap.isRecycled()) {
@@ -245,7 +260,7 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private void showResult(float score, boolean suspected, ImageQuality.Result quality,
-                            EyeFraming.Result framing) {
+                            EyeFraming.Result framing, Bitmap overlay) {
         setBusy(false, "Experimental research result. Technical checks passed; eye framing still needs visual review.");
         resultText.setText(PterygiumDecision.label(score));
         resultText.setTextColor(ContextCompat.getColor(
@@ -257,6 +272,9 @@ public final class MainActivity extends AppCompatActivity {
                 PterygiumDecision.THRESHOLD,
                 formatQuality(quality),
                 formatFraming(framing)));
+        currentHeatmap = overlay;
+        heatmapPreview.setImageBitmap(overlay);
+        heatmapButton.setVisibility(View.VISIBLE);
     }
 
     private void showInconclusive(float originalScore, float framedScore,
@@ -295,6 +313,18 @@ public final class MainActivity extends AppCompatActivity {
         statusText.setText(status);
     }
 
+    private void clearHeatmap() {
+        heatmapPreview.setImageDrawable(null);
+        heatmapPreview.setVisibility(View.GONE);
+        findViewById(R.id.heatmapNotice).setVisibility(View.GONE);
+        heatmapButton.setVisibility(View.GONE);
+        heatmapButton.setText(R.string.show_research_heatmap);
+        if (currentHeatmap != null) {
+            currentHeatmap.recycle();
+            currentHeatmap = null;
+        }
+    }
+
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         if (pendingCameraUri != null) {
@@ -305,6 +335,7 @@ public final class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        clearHeatmap();
         inferenceExecutor.shutdownNow();
         if (classifier != null) {
             classifier.close();

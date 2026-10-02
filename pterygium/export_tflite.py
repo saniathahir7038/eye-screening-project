@@ -56,7 +56,7 @@ def tflite_predict(path: Path, images: np.ndarray) -> tuple[np.ndarray, dict]:
     interpreter = tf.lite.Interpreter(model_path=str(path), num_threads=2)
     interpreter.allocate_tensors()
     input_detail = interpreter.get_input_details()[0]
-    output_detail = interpreter.get_output_details()[0]
+    output_detail = score_output_detail(interpreter)
     if tuple(input_detail["shape"]) != (1, 224, 224, 3) or input_detail["dtype"] != np.float32:
         raise ValueError(f"Unexpected TFLite input: {input_detail['shape']} {input_detail['dtype']}")
     if tuple(output_detail["shape"]) != (1, 1) or output_detail["dtype"] != np.float32:
@@ -75,6 +75,15 @@ def tflite_predict(path: Path, images: np.ndarray) -> tuple[np.ndarray, dict]:
         "output_dtype": output_detail["dtype"].__name__,
     }
     return np.asarray(scores, dtype=np.float64), metadata
+
+
+def score_output_detail(interpreter) -> dict:
+    """Find the scalar classifier score in score-only or explainability exports."""
+    candidates = [detail for detail in interpreter.get_output_details()
+                  if tuple(detail["shape"]) == (1, 1) and detail["dtype"] == np.float32]
+    if len(candidates) != 1:
+        raise ValueError("Expected exactly one float32 classifier score output")
+    return candidates[0]
 
 
 def sha256(path: Path) -> str:
@@ -197,7 +206,7 @@ def main() -> int:
     parser.add_argument("--output", type=Path, default=ROOT / "artifacts/domain_adapt_v1/export")
     parser.add_argument(
         "--android-asset", type=Path,
-        default=ROOT / "android_app/app/src/main/assets/pterygium_model.tflite",
+        default=ROOT / "artifacts/domain_adapt_v1/export/pterygium_score_only.tflite",
     )
     result = export(parser.parse_args())
     return 0 if result["status"] == "conversion_verified" else 1
