@@ -1,10 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Pterygium Screening</string>
+    <string name="app_name">Eye Screening</string>
+    <string name="home_eyebrow">EYE SCREENING</string>
+    <string name="home_title">Choose a screening test</string>
+    <string name="home_intro">Select a module below. Your images are processed privately on this phone.</string>
+    <string name="pterygium_module_title">Pterygium screening</string>
+    <string name="pterygium_module_description">Use a clear, close-up eye photo to check for a suspected pterygium pattern.</string>
+    <string name="keratoconus_module_title">Keratoconus screening</string>
+    <string name="keratoconus_module_description">Use a Placido-ring eye image to analyse the corneal shape with SmartKC.</string>
+    <string name="start_pterygium">Start pterygium test</string>
+    <string name="open_keratoconus">Open keratoconus module</string>
+    <string name="available_now">AVAILABLE</string>
+    <string name="setup_in_progress">IN DEVELOPMENT</string>
+    <string name="hardware_test_ready">HARDWARE TEST READY</string>
+    <string name="dry_eye_module_title">Dry Eye screening</string>
+    <string name="dry_eye_module_description">Record a Placido-ring eye video to measure tear-film stability with DEDector.</string>
+    <string name="open_dry_eye">Open Dry Eye module</string>
+    <string name="dry_eye_title">Dry Eye screening</string>
+    <string name="dry_eye_intro">Capture a short Placido-ring video for Non-Invasive Break-Up Time testing.</string>
+    <string name="dry_eye_test_setup">Before recording</string>
+    <string name="dry_eye_test_steps">1. Attach the Placido ring and turn on its light.\n2. Select the eye being recorded.\n3. Centre the reflected rings and keep them sharp.\n4. Ask the person to blink once, then comfortably keep the eye open.\n5. Record for up to 15 seconds. Stop immediately if uncomfortable.</string>
+    <string name="select_eye">Select eye</string>
+    <string name="left_eye">Left eye</string>
+    <string name="right_eye">Right eye</string>
+    <string name="record_placido_video">Record Placido video</string>
+    <string name="share_test_video">Share test video</string>
+    <string name="dry_eye_no_video">No video recorded yet.</string>
+    <string name="dry_eye_video_ready">Video captured and ready to share for hardware validation.</string>
+    <string name="dry_eye_video_description">Recorded Placido-ring eye video preview</string>
+    <string name="dry_eye_analysis_pending">Automated NIBUT processing is not enabled in this hardware-test build. No Dry Eye result is generated yet.</string>
+    <string name="dry_eye_capture_failed">The video could not be recorded. Check the camera and try again.</string>
+    <string-array name="eye_sides">
+        <item>Left eye</item>
+        <item>Right eye</item>
+    </string-array>
+    <string name="keratoconus_foundation_title">Keratoconus screening</string>
+    <string name="keratoconus_foundation_body">Run the four SmartKC samples included with this research build and review the immediate screening output.</string>
+    <string name="keratoconus_hardware_note">These results replay previously generated SmartKC measurements. Live capture will be enabled after the on-device pipeline and Placido-ring calibration are tested.</string>
+    <string name="back_to_modules">Back to modules</string>
+    <string name="dataset_test">INTERNAL DATASET TEST</string>
+    <string name="choose_sample">Choose a sample image</string>
+    <string name="run_sample_test">Run sample test</string>
+    <string name="sample_image_description">Selected SmartKC sample Placido-ring eye image</string>
+    <string name="axial_map">Axial map</string>
+    <string name="tangential_map">Tangential map</string>
+    <string name="axial_map_description">SmartKC axial corneal curvature map</string>
+    <string name="tangential_map_description">SmartKC tangential corneal curvature map</string>
+    <string name="dataset_result_waiting">Choose a sample and run the test.</string>
+    <string name="dataset_test_notice">Research dataset replay only. This output is a screening result, not a medical diagnosis.</string>
+    <string name="result_no_kc">No keratoconus pattern detected</string>
+    <string name="result_possible_kc">Possible keratoconus — professional examination recommended</string>
+    <string name="result_suspected_kc">Suspected keratoconus — professional examination recommended</string>
     <string name="screen_title">Pterygium screening</string>
-    <string name="screen_intro">Take one clear photo of one eye. Processing stays on this device.</string>
-    <string name="photo_guide_title">How to take a test photo</string>
-    <string name="photo_guide_steps">1. Ask someone to use the rear camera if possible. Hold the phone level so the eye looks horizontal, not sideways.\n2. Look straight ahead. Keep the whole iris (coloured circle) and visible white on both sides in the photo; fill most of the frame with the eye.\n3. Use bright, even light. Avoid direct flash, deep shadows and bright reflections over the eye.\n4. Tap the eye on the camera screen to focus and hold still. Do not use beauty filters.\n5. Check the preview before screening. Retake if the eye is sideways, cut off, blurry or mostly covered by glare.</string>
+    <string name="screen_intro">Capture or choose one clear, close-up photo of the eye.</string>
+    <string name="photo_guide_title">For a reliable photo</string>
+    <string name="photo_guide_steps">Keep the full coloured iris and white of the eye visible. Use bright, even light, hold the phone level and make sure the image is sharp.</string>
     <string name="capture_photo">Capture photo</string>
     <string name="choose_photo">Choose photo</string>
     <string name="empty_status">No image selected</string>

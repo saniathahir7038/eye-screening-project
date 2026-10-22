@@ -34,3 +34,7 @@ results/**
 .DS_Store
 Thumbs.db
 desktop.ini
+# Local Android build tooling and caches
+shared/downloads/
+shared/gradle-dist/
+shared/gradle-home/

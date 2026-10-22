@@ -1,8 +1,18 @@
-# Pterygium Android screening prototype
+# Eye Screening Android prototype
 
-This standalone Android app runs an experimental pterygium screening model entirely on the device. It is isolated from the SmartKC and DEDector applications.
+This combined Android application contains Pterygium, Keratoconus/SmartKC, and Dry Eye/DEDector modules in one modern interface.
 
-## Included workflow
+See [USAGE.md](USAGE.md) for short, step-by-step instructions.
+
+## Current module status
+
+- **Pterygium:** live on-device image screening.
+- **Keratoconus/SmartKC:** four bundled dataset samples with PPK, Sim-K, aCLMI, axial maps, and tangential maps.
+- **Dry Eye/DEDector:** guided Placido-video capture, playback, and sharing for external hardware validation.
+
+Live SmartKC processing and automated Dry Eye NIBUT analysis remain under development.
+
+## Pterygium workflow
 
 - Capture a new eye photograph with the installed camera app or select an existing image.
 - Correct JPEG orientation and limit decode size to reduce memory pressure.

@@ -21,6 +21,8 @@ eye-screening-project/
 
 ## Current status
 
+- One combined Android APK now provides Pterygium, Keratoconus/SmartKC, and Dry Eye/DEDector module screens.
+- See [the Android quick-use guide](pterygium/android_app/USAGE.md) for the current workflow and capability of each module.
 - The official SmartKC computer pipeline was run successfully on all four bundled sample images.
 - An offline SmartKC Android build mode was added because Microsoft's private Firebase configuration is not public.
 - The offline SmartKC debug APK builds successfully, but physical phone and Placido-hardware testing is still pending.

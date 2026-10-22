@@ -2,13 +2,14 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/page_background"
     android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="20dp">
 
         <TextView
             android:layout_width="match_parent"
@@ -21,71 +22,82 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:lineSpacingExtra="3dp"
+            android:layout_marginTop="7dp"
             android:text="@string/screen_intro"
-            android:textColor="@color/text_primary"
+            android:textColor="@color/text_secondary"
             android:textSize="16sp" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/photo_guide_title"
-            android:textColor="@color/text_primary"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:lineSpacingExtra="3dp"
-            android:text="@string/photo_guide_steps"
-            android:textColor="@color/text_primary"
-            android:textSize="15sp" />
-
         <LinearLayout
-            style="?android:attr/buttonBarStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:orientation="horizontal">
+            android:background="@drawable/module_card_background"
+            android:orientation="vertical"
+            android:padding="16dp">
 
-            <Button
-                android:id="@+id/captureButton"
-                style="?android:attr/buttonBarButtonStyle"
-                android:layout_width="0dp"
+            <TextView
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/capture_photo" />
+                android:text="@string/photo_guide_title"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
-            <Button
-                android:id="@+id/chooseButton"
-                style="?android:attr/buttonBarButtonStyle"
-                android:layout_width="0dp"
+            <TextView
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:layout_weight="1"
-                android:text="@string/choose_photo" />
+                android:layout_marginTop="6dp"
+                android:lineSpacingExtra="2dp"
+                android:text="@string/photo_guide_steps"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp" />
         </LinearLayout>
+
+        <Button
+            android:id="@+id/captureButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:background="@drawable/button_primary_background"
+            android:minHeight="52dp"
+            android:text="@string/capture_photo"
+            android:textAllCaps="false"
+            android:textColor="@color/on_primary"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/chooseButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/button_secondary_background"
+            android:minHeight="52dp"
+            android:text="@string/choose_photo"
+            android:textAllCaps="false"
+            android:textColor="@color/primary"
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
         <ImageView
             android:id="@+id/imagePreview"
             android:layout_width="match_parent"
             android:layout_height="260dp"
-            android:layout_marginTop="20dp"
-            android:adjustViewBounds="true"
-            android:background="#DCE6E4"
+            android:layout_marginTop="18dp"
+            android:background="@drawable/module_card_background"
             android:contentDescription="@string/selected_image_description"
+            android:padding="6dp"
             android:scaleType="fitCenter" />
 
         <Button
             android:id="@+id/heatmapButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/button_secondary_background"
             android:text="@string/show_research_heatmap"
+            android:textAllCaps="false"
+            android:textColor="@color/primary"
             android:visibility="gone" />
 
         <ImageView
@@ -104,7 +116,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
             android:text="@string/research_heatmap_notice"
-            android:textColor="@color/text_primary"
+            android:textColor="@color/text_secondary"
             android:textSize="13sp"
             android:visibility="gone" />
 
@@ -123,16 +135,16 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="@string/empty_status"
-            android:textColor="@color/text_primary"
-            android:textSize="16sp" />
+            android:textColor="@color/text_secondary"
+            android:textSize="15sp" />
 
         <TextView
             android:id="@+id/resultText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="10dp"
             android:textColor="@color/text_primary"
-            android:textSize="21sp"
+            android:textSize="22sp"
             android:textStyle="bold" />
 
         <TextView
@@ -140,7 +152,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:textColor="@color/text_primary"
+            android:textColor="@color/text_secondary"
             android:textSize="14sp" />
 
         <TextView
@@ -149,7 +161,7 @@
             android:layout_marginTop="24dp"
             android:lineSpacingExtra="2dp"
             android:text="@string/research_notice"
-            android:textColor="@color/text_primary"
-            android:textSize="13sp" />
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp" />
     </LinearLayout>
 </ScrollView>
