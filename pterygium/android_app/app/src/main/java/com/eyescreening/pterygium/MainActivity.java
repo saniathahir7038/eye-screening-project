@@ -8,8 +8,10 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -21,6 +23,7 @@ import androidx.core.content.FileProvider;
 import androidx.exifinterface.media.ExifInterface;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Locale;
@@ -40,6 +43,8 @@ public final class MainActivity extends AppCompatActivity {
     private Button captureButton;
     private Button chooseButton;
     private Button heatmapButton;
+    private Button sampleButton;
+    private Spinner sampleSpinner;
     private Bitmap currentHeatmap;
     private final ExecutorService inferenceExecutor = Executors.newSingleThreadExecutor();
     private PterygiumClassifier classifier;
@@ -78,6 +83,8 @@ public final class MainActivity extends AppCompatActivity {
         captureButton = findViewById(R.id.captureButton);
         chooseButton = findViewById(R.id.chooseButton);
         heatmapButton = findViewById(R.id.heatmapButton);
+        sampleButton = findViewById(R.id.runPterygiumSampleButton);
+        sampleSpinner = findViewById(R.id.pterygiumSampleSpinner);
         if (savedInstanceState != null) {
             String cameraUri = savedInstanceState.getString(STATE_CAMERA_URI);
             if (cameraUri != null) {
@@ -87,6 +94,13 @@ public final class MainActivity extends AppCompatActivity {
 
         captureButton.setOnClickListener(view -> capturePhoto());
         chooseButton.setOnClickListener(view -> imagePicker.launch("image/*"));
+        String[] sampleNames = new String[PterygiumSample.ALL.length];
+        for (int i = 0; i < sampleNames.length; i++) sampleNames[i] = PterygiumSample.ALL[i].name;
+        ArrayAdapter<String> sampleAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, sampleNames);
+        sampleAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        sampleSpinner.setAdapter(sampleAdapter);
+        sampleButton.setOnClickListener(view -> runSample());
         heatmapButton.setOnClickListener(view -> {
             boolean show = heatmapPreview.getVisibility() != View.VISIBLE;
             heatmapPreview.setVisibility(show ? View.VISIBLE : View.GONE);
@@ -124,6 +138,27 @@ public final class MainActivity extends AppCompatActivity {
             cameraCapture.launch(pendingCameraUri);
         } catch (IOException error) {
             setStatus("The camera could not be opened. Choose a saved photograph instead.");
+        }
+    }
+
+    private void runSample() {
+        PterygiumSample sample = PterygiumSample.ALL[sampleSpinner.getSelectedItemPosition()];
+        try {
+            File directory = new File(getCacheDir(), "pterygium-samples");
+            if (!directory.exists() && !directory.mkdirs()) throw new IOException("cache");
+            File file = new File(directory, "sample-" + sample.resource + ".png");
+            if (!file.exists()) {
+                try (InputStream input = getResources().openRawResource(sample.resource);
+                     FileOutputStream output = new FileOutputStream(file)) {
+                    byte[] buffer = new byte[8192];
+                    int read;
+                    while ((read = input.read(buffer)) != -1) output.write(buffer, 0, read);
+                }
+            }
+            Uri uri = FileProvider.getUriForFile(this, BuildConfig.APPLICATION_ID + ".files", file);
+            handleImage(uri);
+        } catch (IOException error) {
+            setStatus("The bundled sample could not be opened.");
         }
     }
 
@@ -306,6 +341,7 @@ public final class MainActivity extends AppCompatActivity {
         progressBar.setVisibility(busy ? View.VISIBLE : View.GONE);
         captureButton.setEnabled(!busy && classifier != null);
         chooseButton.setEnabled(!busy && classifier != null);
+        sampleButton.setEnabled(!busy && classifier != null);
         setStatus(status);
     }
 

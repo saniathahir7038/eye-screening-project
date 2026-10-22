@@ -96,6 +96,44 @@
             android:textSize="16sp"
             android:textStyle="bold" />
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:text="Technical sample videos"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:text="These synthetic videos check playback and failure handling. They are not labelled patient Dry Eye data."
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp" />
+
+        <Button
+            android:id="@+id/runDryEyeSampleButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/button_secondary_background"
+            android:minHeight="50dp"
+            android:text="Run synthetic sample"
+            android:textAllCaps="false"
+            android:textColor="@color/primary"
+            android:textStyle="bold" />
+
+        <ProgressBar
+            android:id="@+id/dryEyeProgress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:indeterminate="true"
+            android:visibility="gone" />
+
         <VideoView
             android:id="@+id/dryEyeVideoPreview"
             android:layout_width="match_parent"
@@ -137,7 +175,7 @@
             android:background="@drawable/module_card_background"
             android:lineSpacingExtra="2dp"
             android:padding="16dp"
-            android:text="@string/dry_eye_analysis_pending"
+            android:text="Live capture is analysed automatically. Results remain experimental until the phone and 3D Placido attachment are compared with the reference DEDector pipeline."
             android:textColor="@color/text_secondary"
             android:textSize="13sp" />
 

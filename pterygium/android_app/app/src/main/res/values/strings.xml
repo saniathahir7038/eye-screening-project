@@ -11,8 +11,8 @@
     <string name="start_pterygium">Start pterygium test</string>
     <string name="open_keratoconus">Open keratoconus module</string>
     <string name="available_now">AVAILABLE</string>
-    <string name="setup_in_progress">IN DEVELOPMENT</string>
-    <string name="hardware_test_ready">HARDWARE TEST READY</string>
+    <string name="setup_in_progress">EXPERIMENTAL LIVE TEST</string>
+    <string name="hardware_test_ready">EXPERIMENTAL LIVE TEST</string>
     <string name="dry_eye_module_title">Dry Eye screening</string>
     <string name="dry_eye_module_description">Record a Placido-ring eye video to measure tear-film stability with DEDector.</string>
     <string name="open_dry_eye">Open Dry Eye module</string>
@@ -35,7 +35,7 @@
         <item>Right eye</item>
     </string-array>
     <string name="keratoconus_foundation_title">Keratoconus screening</string>
-    <string name="keratoconus_foundation_body">Run the four SmartKC samples included with this research build and review the immediate screening output.</string>
+    <string name="keratoconus_foundation_body">Run a live Placido capture or verify the app with one of four included SmartKC samples.</string>
     <string name="keratoconus_hardware_note">These results replay previously generated SmartKC measurements. Live capture will be enabled after the on-device pipeline and Placido-ring calibration are tested.</string>
     <string name="back_to_modules">Back to modules</string>
     <string name="dataset_test">INTERNAL DATASET TEST</string>
